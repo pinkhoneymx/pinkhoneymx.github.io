@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rastreo de Pedido | PINKHONEY</title>
 
 <style>
@@ -109,6 +110,25 @@ button:hover {
   font-size: 14px;
   text-align: center;
 }
+@media (max-width: 480px) {
+  body {
+    padding: 20px;
+  }
+
+  h1 {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+
+  input, button {
+    font-size: 16px;
+    padding: 16px;
+  }
+
+  .timeline-step {
+    font-size: 15px;
+  }
+}
 </style>
 </head>
 
@@ -193,3 +213,4 @@ function buscar() {
 
 </body>
 </html>
+
