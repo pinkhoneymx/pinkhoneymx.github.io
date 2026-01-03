@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Rastreo de Pedido | PINKHONEY</title>
+
+<style>
+body {
+  font-family: Helvetica, Arial, sans-serif;
+  background: #ffffff;
+  color: #333;
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+
+.container {
+  max-width: 420px;
+  width: 100%;
+  text-align: center;
+}
+
+h1 {
+  color: #ff2f7d;
+  letter-spacing: 3px;
+  font-weight: normal;
+  margin-bottom: 30px;
+}
+
+input {
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  background: #ff2f7d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+button:hover {
+  background: #e0266f;
+}
+
+#resultado {
+  margin-top: 30px;
+  text-align: left;
+}
+
+/* TIMELINE */
+.timeline {
+  position: relative;
+  padding-left: 30px;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #e0e0e0;
+}
+
+.timeline-step {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+  color: #bdbdbd;
+  font-size: 14px;
+}
+
+.timeline-step.active {
+  color: #ff2f7d;
+  font-weight: bold;
+}
+
+.dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  margin-right: 12px;
+  z-index: 1;
+}
+
+.timeline-step.active .dot {
+  background: #ff2f7d;
+}
+
+.info {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #555;
+}
+
+.error {
+  color: #ff2f7d;
+  font-size: 14px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>PINKHONEY</h1>
+
+  <input id="pedido" placeholder="Número de pedido">
+  <input id="telefono" placeholder="Número de teléfono (10 dígitos)" maxlength="10">
+  <button onclick="buscar()">Rastrear pedido</button>
+
+  <div id="resultado"></div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbwLUSgNSc4c3dK4mkwcQ51qjHj8NSAg9Jusa1Hqg-_zaqYH34aUnqefqa03ltM7MK0j/exec";
+
+const pasos = [
+  "Pedido pagado",
+  "Pedido empacado",
+  "Pedido recibido por paquetería",
+  "Pedido en camino a su destino",
+  "Pedido entregado"
+];
+
+function buscar() {
+  const pedido = document.getElementById("pedido").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const resultadoDiv = document.getElementById("resultado");
+
+  resultadoDiv.innerHTML = "";
+
+  if (!pedido || telefono.length !== 10) {
+    resultadoDiv.innerHTML = '<div class="error">Verifica los datos ingresados</div>';
+    return;
+  }
+
+  fetch(`${API_URL}?pedido=${pedido}&telefono=${telefono}`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        resultadoDiv.innerHTML = '<div class="error">Pedido no encontrado</div>';
+        return;
+      }
+
+      let html = '<div class="timeline">';
+
+      pasos.forEach((p, index) => {
+        const activo = pasos.indexOf(data.estado) >= index;
+        html += `
+          <div class="timeline-step ${activo ? 'active' : ''}">
+            <div class="dot"></div>
+            <div>${p}</div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+
+      // MOSTRAR GUÍA EN LOS ESTATUS CORRECTOS
+      const estadosConGuia = [
+        "Pedido recibido por paquetería",
+        "Pedido en camino a su destino",
+        "Pedido entregado"
+      ];
+
+      if (estadosConGuia.includes(data.estado) && data.guia) {
+        html += `<div class="info">📦 Número de guía: <strong>${data.guia}</strong></div>`;
+      }
+
+      if (data.nota) {
+        html += `<div class="info">📝 ${data.nota}</div>`;
+      }
+
+      resultadoDiv.innerHTML = html;
+    })
+    .catch(() => {
+      resultadoDiv.innerHTML = '<div class="error">Error al consultar el pedido</div>';
+    });
+}
+</script>
+
+</body>
+</html>
